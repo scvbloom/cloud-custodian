@@ -5,7 +5,7 @@ import uuid
 import os
 
 
-from c7n.output import (
+from c7n.arango_output import (
     api_stats_outputs,
     blob_outputs,
     log_outputs,
