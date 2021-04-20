@@ -70,7 +70,7 @@ class OutputRegistry(PluginRegistry):
             if selector.startswith(k):
                 return self[k](ctx, parse_url_config(selector))
         if self.db:
-            return self["file"](ctx, parse_url_config(selector))
+            return self["default"](ctx, {'url': selector})
         raise InvalidOutputConfig("Invalid %s: %s" % (
             self.plugin_type,
             selector))
