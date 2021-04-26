@@ -691,6 +691,11 @@ class AbstractLambdaFunction:
             'VpcConfig': LAMBDA_EMPTY_VALUES['VpcConfig'],
             'Tags': self.tags}
 
+        if self.description and len(self.description) > 256:
+            conf['Description'] = conf['Description'].strip()[:256]
+            log.warning(
+                "Lambda function description trimmed to max length of 256"
+                " policy:%s " % (self.name))
         if self.layers:
             conf['Layers'] = self.layers
 

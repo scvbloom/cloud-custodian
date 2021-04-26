@@ -10,6 +10,7 @@ import time
 
 from dateutil import parser, tz as tzutil
 import jmespath
+from uuid import uuid4
 
 from c7n.cwe import CloudWatchEvents
 from c7n.ctx import ExecutionContext
@@ -985,6 +986,7 @@ class Policy:
     log = logging.getLogger('custodian.policy')
 
     def __init__(self, data, options, session_factory=None):
+        self.id = uuid4()
         self.data = data
         self.options = options
         assert "name" in self.data
@@ -1002,6 +1004,10 @@ class Policy:
     @property
     def name(self):
         return self.data['name']
+
+    @property
+    def event_id(self):
+        return self.options['event_id']
 
     @property
     def resource_type(self):
@@ -1191,6 +1197,8 @@ class Policy:
     def _write_file(self, rel_path, value):
         if isinstance(self.ctx.output, NullBlobOutput):
             return
+        data = utils.loads(value)
+        self.ctx.metrics.write_to_db(rel_path, data)
         with open(os.path.join(self.ctx.log_dir, rel_path), 'w') as fh:
             fh.write(value)
 
