@@ -55,7 +55,6 @@ RUN adduser --disabled-login --gecos "" custodian
 USER custodian
 RUN python3 -m pip install pika pyArango
 WORKDIR /home/custodian
-COPY .env .env
 COPY main.py main.py
 ENV LC_ALL="C.UTF-8" LANG="C.UTF-8"
 
