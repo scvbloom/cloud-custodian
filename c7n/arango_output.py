@@ -30,7 +30,7 @@ except ImportError:
     HAVE_PSUTIL = False
 
 log = logging.getLogger('custodian.arango_output')
-conn = False
+conn = None
 
 # TODO remove
 DEFAULT_NAMESPACE = "CloudMaid"
@@ -268,15 +268,17 @@ class Metrics:
     init_query = '''
     INSERT {
         "_key": @id, 
-        "time": DATE_NOW(), 
+        "time": DATE_NOW(),
+        "account_id": @account_id,
+        "event_id": @event_id,
         "resource": @resource,
-        "name":@name
-    } INTO policies
+        "name": @name
+    } INTO c7x_scans
     '''
 
     metrics_query = '''
-    LET doc = DOCUMENT("policies", @id)
-    UPDATE doc WITH {@field: @entry} IN policies
+    LET doc = DOCUMENT("c7x_scans", @id)
+    UPDATE doc WITH {@field: @entry} IN c7x_scans
     '''
 
     def _connect(self):
@@ -303,6 +305,8 @@ class Metrics:
                 "id": self.ctx.policy.id,
                 "name": self.ctx.policy.name,
                 "resource": self.ctx.policy.resource_type,
+                "account_id": self.ctx.policy.options.account_id,
+                "event_id": self.ctx.policy.event_id,
             })
         except Exception as e:
             raise e

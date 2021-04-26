@@ -12,7 +12,7 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 WORKDIR /src
 
 # Add core & aws packages
-ADD pyproject.toml poetry.lock README.md /src/
+ADD pyproject.toml README.md /src/
 ADD c7n /src/c7n/
 RUN . /usr/local/bin/activate && $HOME/.poetry/bin/poetry install --no-dev
 RUN . /usr/local/bin/activate && pip install -q wheel
@@ -27,9 +27,11 @@ ADD tools/c7n_kube /src/tools/c7n_kube
 RUN rm -R tools/c7n_kube/tests
 ADD tools/c7n_openstack /src/tools/c7n_openstack
 RUN rm -R tools/c7n_openstack/tests
+ADD tools/c7n_org /src/tools/c7n_org
+RUN rm -R tools/c7n_org/tests
 
 # Install requested providers
-ARG providers="azure gcp kube openstack"
+ARG providers="azure gcp kube openstack org"
 RUN . /usr/local/bin/activate && \
     for pkg in $providers; do cd tools/c7n_$pkg && \
     $HOME/.poetry/bin/poetry install && cd ../../; done
@@ -37,9 +39,6 @@ RUN . /usr/local/bin/activate && \
 RUN mkdir /output
 
 FROM ubuntu:20.04
-
-LABEL name="cli" \
-      repository="http://github.com/cloud-custodian/cloud-custodian"
 
 COPY --from=build-env /src /src
 COPY --from=build-env /usr/local /usr/local
@@ -51,10 +50,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get --yes update \
         && rm -Rf /var/lib/apt/lists/* \
         && rm -Rf /var/log/*
 
+RUN pip install python-dotenv
 RUN adduser --disabled-login --gecos "" custodian
 USER custodian
+RUN python3 -m pip install pika pyArango
 WORKDIR /home/custodian
+COPY .env .env
+COPY main.py main.py
 ENV LC_ALL="C.UTF-8" LANG="C.UTF-8"
-VOLUME ["/home/custodian"]
-ENTRYPOINT ["/usr/local/bin/custodian"]
-CMD ["--help"]
+
+ENTRYPOINT ["python3", "/home/custodian/main.py"]

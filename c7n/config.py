@@ -29,6 +29,7 @@ class Config(Bag):
     def empty(cls, **kw):
         d = {}
         d.update({
+            'event_id': None,
             'region': os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'),
             'regions': (),
             'cache': '',

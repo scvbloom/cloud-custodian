@@ -174,15 +174,9 @@ def init(config, use, debug, verbose, accounts, tags, policies, resource=None, p
         if isinstance(h, logging.StreamHandler):
             h.addFilter(LogFilter())
 
-    with open(config, 'rb') as fh:
-        accounts_config = yaml.safe_load(fh.read())
-        jsonschema.validate(accounts_config, CONFIG_SCHEMA)
+    accounts_config = config
 
-    if use:
-        with open(use) as fh:
-            custodian_config = yaml.safe_load(fh.read())
-    else:
-        custodian_config = {}
+    custodian_config = use
 
     accounts_config['accounts'] = list(accounts_iterator(accounts_config))
     filter_policies(custodian_config, policy_tags, policies, resource)
@@ -549,6 +543,7 @@ def run_account(account, region, policies_config, output_path,
     cache_path = os.path.join(cache_path, "%s-%s.cache" % (account['account_id'], region))
 
     config = Config.empty(
+        event_id=account["event_id"],
         region=region, cache=cache_path,
         cache_period=cache_period, dryrun=dryrun, output_dir=output_path,
         account_id=account['account_id'], metrics_enabled=metrics,
@@ -620,28 +615,6 @@ def run_account(account, region, policies_config, output_path,
     return policy_counts, success
 
 
-@cli.command(name='run')
-@click.option('-c', '--config', required=True, help="Accounts config file")
-@click.option("-u", "--use", required=True)
-@click.option('-s', '--output-dir', required=True, type=click.Path())
-@click.option('-a', '--accounts', multiple=True, default=None)
-@click.option('-t', '--tags', multiple=True, default=None, help="Account tag filter")
-@click.option('-r', '--region', default=None, multiple=True)
-@click.option('-p', '--policy', multiple=True)
-@click.option('-l', '--policytags', 'policy_tags',
-              multiple=True, default=None, help="Policy tag filter")
-@click.option('--cache-period', default=15, type=int)
-@click.option('--cache-path', required=False,
-              type=click.Path(
-                  writable=True, readable=True, exists=True,
-                  resolve_path=True, allow_dash=False,
-                  file_okay=False, dir_okay=True),
-              default=None)
-@click.option("--metrics", default=False, is_flag=True)
-@click.option("--metrics-uri", default=None, help="Configure provider metrics target")
-@click.option("--dryrun", default=False, is_flag=True)
-@click.option('--debug', default=False, is_flag=True)
-@click.option('-v', '--verbose', default=False, help="Verbose", is_flag=True)
 def run(config, use, output_dir, accounts, tags, region,
         policy, policy_tags, cache_period, cache_path, metrics,
         dryrun, debug, verbose, metrics_uri):
@@ -693,5 +666,4 @@ def run(config, use, output_dir, accounts, tags, region,
 
     log.info("Policy resource counts %s" % policy_counts)
 
-    if not success:
-        sys.exit(1)
+    return success, policy_counts
