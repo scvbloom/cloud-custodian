@@ -696,7 +696,6 @@ class AbstractLambdaFunction:
             log.warning(
                 "Lambda function description trimmed to max length of 256"
                 " policy:%s " % (self.name))
-                
         if self.layers:
             conf['Layers'] = self.layers
 

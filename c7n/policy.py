@@ -1004,7 +1004,7 @@ class Policy:
     @property
     def name(self):
         return self.data['name']
-    
+
     @property
     def event_id(self):
         return self.options['event_id']

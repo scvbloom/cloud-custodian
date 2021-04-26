@@ -1,5 +1,5 @@
 from .cli import run
-import json, yaml
+import json
 import os
 from pyArango.connection import Connection
 
@@ -20,7 +20,6 @@ class CloudProvider():
             FILTER policy.mode.type == "periodic"
                 RETURN policy
     '''
-    
     event_id = ""
 
     def _connect(self):
@@ -61,10 +60,14 @@ class CloudProvider():
         # LIKE() search
         resource = cloud + "%"
         print(resource)
-        return self.db.AQLQuery(self.fetch_periodic, bindVars={"resource": resource}, rawResults=True)
+        return self.db.AQLQuery(
+            self.fetch_periodic,
+            bindVars={"resource": resource}, rawResults=True)
 
     def _filter_policies(self, resource):
-        return self.db.AQLQuery(self.fetch_query, bindVars={"resource": resource}, rawResults=True)
+        return self.db.AQLQuery(
+            self.fetch_query,
+            bindVars={"resource": resource}, rawResults=True)
 
     def _parse_config(self, config):
         raise NotImplementedError
@@ -79,18 +82,17 @@ class CloudProvider():
 class AWS(CloudProvider):
     def _parse_config(self, config):
         account_config = json.loads(config)
+        role = "arn:aws:iam::" + account_config["account"] + ":role/custodian-test"
+        c = {
+            "event_id": account_config["id"],
+            "source": account_config["source"],
+            "account_id": account_config["account"],
+            "regions": [account_config["region"]],
+            "name": "aws_" + account_config["account"],
+            "role": role,
+        }
         aws_config = {
-            "accounts": [
-                {
-                    "event_id": account_config["id"],
-                    "source": account_config["source"],
-                    "account_id": account_config["account"],
-                    "regions": [account_config["region"]],
-                    "name": "aws_" + account_config["account"],
-                    "role": "arn:aws:iam::" + account_config["account"] + ":role/custodian-test",
-                    # "role": "arn:aws:iam::" + account_config["account"] + ":role/OrganizationAccountAccessRole",
-                }
-            ]
+            "accounts": [c]
         }
         return aws_config
 

@@ -16,8 +16,7 @@ import shutil
 import tempfile
 import time
 import uuid
-from pyArango.connection import *
-
+from pyArango.connection import Connection
 
 from c7n.exceptions import InvalidOutputConfig
 from c7n.registry import PluginRegistry
@@ -101,6 +100,7 @@ log_outputs = LogOutputRegistry('c7n.arango_output.logs')
 metrics_outputs = MetricsRegistry('c7n.arango_output.metrics')
 tracer_outputs = OutputRegistry('c7n.arango_output.tracer')
 sys_stats_outputs = OutputRegistry('c7n.arango_output.sys_stats')
+
 
 @tracer_outputs.register('default')
 class NullTracer:
@@ -267,7 +267,7 @@ class Metrics:
     BUFFER_SIZE = 20
     init_query = '''
     INSERT {
-        "_key": @id, 
+        "_key": @id,
         "time": DATE_NOW(),
         "account_id": @account_id,
         "event_id": @event_id,
@@ -316,9 +316,11 @@ class Metrics:
 
     def _put_metrics(self, ns, metrics):
         raise NotImplementedError("subclass responsiblity")
-    
+
     def write_to_db(self, ns, metrics):
-        self.db.AQLQuery(self.metrics_query, bindVars={
+        self.db.AQLQuery(
+            self.metrics_query,
+            bindVars={
                 "id": self.ctx.policy.id,
                 "field": ns,
                 "entry": metrics,
@@ -346,11 +348,10 @@ class Metrics:
 
 @metrics_outputs.register('default')
 class LogMetrics(Metrics):
-    """Default metrics collection.
-
+    """
+    Default metrics collection.
     logs metrics, default handler should send to stderr
     """
-    
 
     def _put_metrics(self, ns, metrics):
         for m in metrics:
