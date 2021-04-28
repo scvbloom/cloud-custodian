@@ -3,6 +3,7 @@ import json
 import os
 from pyArango.connection import Connection
 
+assumeRole = os.getenv("AWS_ASSUME_ROLE")
 
 class CloudProvider():
     fetch_query = '''
@@ -82,7 +83,7 @@ class CloudProvider():
 class AWS(CloudProvider):
     def _parse_config(self, config):
         account_config = json.loads(config)
-        role = "arn:aws:iam::" + account_config["account"] + ":role/custodian-test"
+        role = "arn:aws:iam::" + account_config["account"] + ":role/"+ assumeRole
         c = {
             "event_id": account_config["id"],
             "source": account_config["source"],
