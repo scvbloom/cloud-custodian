@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import pika, sys, os, json
-from tools.c7n_org.c7n_org.override import overrun
 # from c7n_org.override import overrun
 # from async_publisher import CustodianPublisher
 import time
 from dotenv import load_dotenv
-
 load_dotenv(dotenv_path=os.getenv("ENV_PATH"))
+
+from tools.c7n_org.c7n_org.override import overrun
+
 
 exchange = os.getenv("RABBITMQ_EXCHANGE")
 routing_key = os.getenv("RABBITMQ_ROUTING_KEY")
