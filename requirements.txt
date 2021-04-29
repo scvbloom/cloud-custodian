@@ -75,3 +75,4 @@ yarl==1.6.3; python_version >= "3.6"
 zipp==3.4.1; python_version >= "3.6" and python_version < "3.8"
 pika==1.2.0; python_version >= "3.6"
 pyArango==1.3.4; python_version >= "3.6"
+arnparse==0.0.2
