@@ -1,3 +1,7 @@
+from .actions import *
+from .filters import *
+from .modes import *
+from .patch import *
 from .cli import run
 import json
 import os
