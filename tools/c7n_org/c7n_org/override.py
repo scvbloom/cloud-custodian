@@ -7,19 +7,17 @@ assumeRole = os.getenv("AWS_ASSUME_ROLE")
 
 class CloudProvider():
     fetch_query = '''
-    FOR cloud_policies IN policies
-        FOR policy IN cloud_policies.policies
-            FILTER policy.resource == @resource
-                RETURN policy
+    FOR policy IN policies
+        FILTER policy.resource == @resource
+            RETURN policy
     '''
 
     fetch_periodic = '''
-    FOR cloud_policies IN policies
-        FOR policy IN cloud_policies.policies
-            FILTER LIKE(policy.resource, @resource)
-            FILTER HAS(policy, "mode")
-            FILTER policy.mode.type == "periodic"
-                RETURN policy
+    FOR policy IN policies
+        FILTER LIKE(policy.resource, @resource)
+        FILTER HAS(policy, "mode")
+        FILTER policy.mode.type == "periodic"
+            RETURN policy
     '''
     event_id = ""
 
