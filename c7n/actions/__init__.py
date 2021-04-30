@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from .core import Action, EventAction, BaseAction, ActionRegistry
+from .core import Action, EventAction, BaseAction, BaseVariableSupportAction, ActionRegistry
 from .autotag import AutoTagUser
 from .invoke import LambdaInvoke
 from .metric import PutMetric

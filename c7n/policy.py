@@ -1093,28 +1093,14 @@ class Policy:
 
         variables.update({
             # standard runtime variables for interpolation
-            'account': '{account}',
             'account_id': self.options.account_id,
             'region': self.options.region,
             # non-standard runtime variables from local filter/action vocabularies
             #
             # notify action
             'policy': self.data,
-            'event': '{event}',
-            # mark for op action
-            'op': '{op}',
-            'action_date': '{action_date}',
             # tag action pyformat-date handling
             'now': utils.FormatDate(datetime.utcnow()),
-            # account increase limit action
-            'service': '{service}',
-            # s3 set logging action :-( see if we can revisit this one.
-            'bucket_region': '{bucket_region}',
-            'bucket_name': '{bucket_name}',
-            'source_bucket_name': '{source_bucket_name}',
-            'target_bucket_name': '{target_bucket_name}',
-            'target_prefix': '{target_prefix}',
-            'LoadBalancerName': '{LoadBalancerName}'
         })
         return variables
 
@@ -1124,7 +1110,7 @@ class Policy:
         Updates the policy data in-place.
         """
         # format string values returns a copy
-        updated = utils.format_string_values(self.data, **variables)
+        updated = utils.format_string_values(self.data, **variables, partial=True)
 
         # Several keys should only be expanded at runtime, perserve them.
         if 'member-role' in updated.get('mode', {}):

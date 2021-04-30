@@ -1,22 +1,22 @@
-from c7n.actions import BaseAction
+from c7n.actions import BaseVariableSupportAction
 
 
 def patch(registry, name):
     """
-    Patches an existing action class and make it inherit from BaseAction
+    Patches an existing action class and make it inherit from BaseVariableSupportAction
     to include all the goodies of variable support.
 
     In effect this method _generates_ a class which works similar to,
 
     ```
-    class PatchX(BaseAction, X):
+    class PatchX(BaseVariableSupportAction, X):
         def process_resource(self, data, resource):
             return X(data=data, manager=self.manager, log_dir=self.log_dir).process([resource])
     ```
 
     We need to inherit from an existing policy to inherit it's existing schema but we can't make a
     X.process(self, [resource]) call because most existing policies would read from self.data (which is not allowed
-    for a class inheriting from BaseAction) and so, instead of that we create a new instance of X
+    for a class inheriting from BaseVariableSupportAction) and so, instead of that we create a new instance of X
     and invoke it's process(...) method using the pre-processed data object we receive in process_resource.
 
     Instead of having to define the above boilerplate each time, we implement this using type(...)
@@ -36,7 +36,7 @@ def patch(registry, name):
         return process_resource
 
     klass = registry[name]
-    patched_klass = type(f"Patch{klass.__name__}", (BaseAction, klass), {
+    patched_klass = type(f"Patch{klass.__name__}", (BaseVariableSupportAction, klass), {
         'process_resource': make_process_resource(klass)
     })
 

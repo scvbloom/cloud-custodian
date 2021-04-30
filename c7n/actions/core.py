@@ -3,11 +3,16 @@
 """
 Actions to take on resources
 """
+import copy
 import logging
+import sys
+from abc import ABC, abstractmethod
+from concurrent.futures import as_completed
 
 from c7n.element import Element
 from c7n.exceptions import PolicyValidationError, ClientError
 from c7n.registry import PluginRegistry
+from c7n.utils import format_string_values
 
 
 class ActionRegistry(PluginRegistry):
@@ -79,3 +84,56 @@ BaseAction = Action
 class EventAction(BaseAction):
     """Actions which receive lambda event if present
     """
+class BaseVariableSupportAction(ABC, BaseAction):
+    """Actions which have native support for variable interpolation
+    """
+
+    def process(self, resources):
+        tmpl = super().__getattribute__("data")  # to prevent false-positive warnings from __getattribute__ below
+        with self.executor_factory(max_workers=3) as w:
+            futures = {}
+            results = []
+            for resource in resources:
+                additional_args = self.get_additional_format_arguments(resource) or {}
+                vars = self._merge(copy.deepcopy(resource), additional_args)
+                data = format_string_values(tmpl, **vars)
+                futures[w.submit(self.process_resource, data, resource)] = resource
+
+            for f in as_completed(futures):
+                if f.exception():
+                    self.log.error('error occurred while processing resource:\n%s', f.exception())
+                results += filter(None, [f.result()])
+
+            return results
+
+    @staticmethod
+    def _merge(a, b):
+        if sys.version_info >= (3, 5):
+            return {**a, **b}
+        else:
+            c = a.copy()
+            c.update(b)
+            return c
+
+    def get_additional_format_arguments(self, resource):
+        """Return additional arguments from this resource
+        that are then used to process data template later passed to process_resource.
+        This is an optional hook that subclasses can tap into to override certain keys.
+        """
+        pass
+
+    @abstractmethod
+    def process_resource(self, data, resource):
+        """Process an individual record with pre-processed data value
+        returning a result from the action. The data value passed is pre-formatted from value
+        in self.data and subclasses MUST use this instead of self.data .
+        This method can be called concurrently and it's implementations must be thread-safe.
+        """
+        pass
+
+    def __getattribute__(self, attr):
+        if attr == "data":
+            # a latch to allow us to detect what all downstream actions are depending on self.data directly
+            # going forward we might want to enforce this and replace with an AttributeError or similar
+            self.log.warning("direct access to attribute 'data' detected from action %s", self.name)
+        return super().__getattribute__(attr)

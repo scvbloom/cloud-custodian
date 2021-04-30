@@ -276,8 +276,13 @@ def generate(resource_types=()):
                 # utilization between policies that have different
                 # queries.
                 'query': {
-                    'type': 'array', 'items': {'type': 'object'}}
+                    'type': 'array', 'items': {'type': 'object'}},
 
+                # meta key used to define the severity level of a policy
+                'severity': {
+                    'enum': ['critical', 'high', 'medium', 'low', 'none']
+                },
+                'remediation': {'type': 'string'}
             },
         },
         'policy-mode': {

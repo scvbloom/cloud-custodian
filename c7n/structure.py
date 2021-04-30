@@ -17,6 +17,8 @@ class StructureParser:
     allowed_policy_keys = {'name', 'resource', 'title', 'description', 'mode',
          'tags', 'max-resources', 'metadata', 'query',
          'filters', 'actions', 'source', 'conditions',
+         # additional keys to describe meta-information about the policy
+         'severity', 'remediation',
          # legacy keys subject to deprecation.
          'region', 'start', 'end', 'tz', 'max-resources-percent',
          'comments', 'comment'}

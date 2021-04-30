@@ -562,7 +562,7 @@ def set_value_from_jmespath(source, expression, value, is_first=True):
     source[current_key] = value
 
 
-def format_string_values(obj, err_fallback=(IndexError, KeyError), *args, **kwargs):
+def format_string_values(obj, err_fallback=(IndexError, KeyError), partial=False, *args, **kwargs):
     """
     Format all string values in an object.
     Return the updated object
@@ -579,11 +579,51 @@ def format_string_values(obj, err_fallback=(IndexError, KeyError), *args, **kwar
         return new
     elif isinstance(obj, str):
         try:
-            return obj.format(*args, **kwargs)
+            return obj.format(*args, **kwargs) if not partial else obj.format_map(SafeLookupDict(**kwargs))
         except err_fallback:
+            if partial:
+                raise
             return obj
     else:
         return obj
+
+class SafeLookupDict(dict):
+    """
+    SafeLookupDict is a dict that returns literal key value
+    as '{key}' if key is missing so that we can partially
+    format the string now and reuse it as a format string later
+    adapted from: https://stackoverflow.com/a/11284026/6611700 (also follow comments)
+    adapted from: http://ideone.com/xykV7R
+    """
+
+    class FormatPlaceholder:
+        """
+        FormatPlaceholder implements __format__ and re-renders the original string
+        thus preserving format string for non-existent keys
+        """
+
+        def __init__(self, key):
+            self.key = key
+
+        def __format__(self, spec):
+            result = self.key
+            if spec:
+                result += ":" + spec
+            return "{" + result + "}"
+
+        def __getitem__(self, k):
+            return SafeLookupDict.FormatPlaceholder(f"{self.key}[{k}]")
+
+        def __getattr__(self, k):
+            return SafeLookupDict.FormatPlaceholder(f"{self.key}.{k}")
+
+    def __missing__(self, key):
+        """
+        __missing__ implements a polyfill that allows us to inject our
+        custom lookup logic in the default map lookup thus allowing interop with existing
+        frameworks like `str.format_map`
+        """
+        return SafeLookupDict.FormatPlaceholder(key)
 
 
 def parse_url_config(url):
