@@ -11,7 +11,7 @@ import contextlib
 import datetime
 import gzip
 import logging
-import os
+import os, sys
 import shutil
 import tempfile
 import time
@@ -444,7 +444,7 @@ class LogOutput:
 class LogFile(LogOutput):
 
     def __repr__(self):
-        return "<LogFile file://%s>" % self.log_path
+        return "<LogFile arrango://%s>" % self.log_path
 
     @property
     def log_path(self):
@@ -452,7 +452,7 @@ class LogFile(LogOutput):
             self.ctx.log_dir, 'custodian-run.log')
 
     def get_handler(self):
-        return logging.FileHandler(self.log_path)
+        return logging.StreamHandler(sys.stdout)
 
 
 @log_outputs.register('null')
@@ -500,12 +500,8 @@ class DirectoryOutput:
         self.config = config
 
         output_path = self.get_output_path(config['url'])
-        if output_path.startswith('file://'):
-            output_path = output_path[len('file://'):]
 
         self.root_dir = output_path
-        if self.root_dir and not os.path.exists(self.root_dir):
-            os.makedirs(self.root_dir)
 
     def __enter__(self):
         return

@@ -435,15 +435,6 @@ def run_account_script(account, region, output_dir, debug, script_args):
         subprocess.check_call(args=script_args, env=env)
         return 0
 
-    output_dir = os.path.join(output_dir, account['name'], region)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    with open(os.path.join(output_dir, 'stdout'), 'wb') as stdout:
-        with open(os.path.join(output_dir, 'stderr'), 'wb') as stderr:
-            return subprocess.call(
-                args=script_args, env=env, stdout=stdout, stderr=stderr)
-
 
 @cli.command(name='run-script', context_settings=dict(ignore_unknown_options=True))
 @click.option('-c', '--config', required=True, help="Accounts config file")

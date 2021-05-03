@@ -7,13 +7,13 @@ by default in the lambda code archive.
 """
 
 # lambda execution entrypoint
-# PolicyHandlerEntrypoint = """\
-# from c7x import handler
+PolicyHandlerEntrypoint = """\
+from c7x import handler
 
-# def run(event, context):
-#     return handler.dispatch_event(event, context)
+def run(event, context):
+    return handler.dispatch_event(event, context)
 
-# """
+"""
 
 # # override default handler function
 

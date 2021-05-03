@@ -260,7 +260,7 @@ class ServerlessExecutionMode(PolicyExecutionMode):
 
 execution = PluginRegistry('c7n.execution')
 
-
+@execution.register('periodic')
 @execution.register('pull')
 class PullMode(PolicyExecutionMode):
     """Pull mode execution of a policy.
@@ -511,7 +511,6 @@ class LambdaMode(ServerlessExecutionMode):
                 role=self.policy.options.assume_role)
 
 
-@execution.register('periodic')
 class PeriodicMode(LambdaMode, PullMode):
     """A policy that runs in pull mode within lambda.
 
@@ -1185,8 +1184,6 @@ class Policy:
             return
         data = utils.loads(value)
         self.ctx.metrics.write_to_db(rel_path, data)
-        with open(os.path.join(self.ctx.log_dir, rel_path), 'w') as fh:
-            fh.write(value)
 
     def load_resource_manager(self):
         factory = get_resource_class(self.data.get('resource'))
