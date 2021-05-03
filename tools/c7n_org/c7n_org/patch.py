@@ -7,19 +7,17 @@ by default in the lambda code archive.
 """
 
 # lambda execution entrypoint
-PolicyHandlerEntrypoint = """\
-from c7x import handler
+# PolicyHandlerEntrypoint = """\
+# from c7x import handler
 
-def run(event, context):
-    return handler.dispatch_event(event, context)
+# def run(event, context):
+#     return handler.dispatch_event(event, context)
 
-"""
+# """
 
-# override default handler function
-mu.PolicyLambda.handler = "c7x_policy.run"  # defined in c7x_policy.py file at root of code archive
+# # override default handler function
 
-# @formatter:off
-old_init = mu.PolicyLambda.__init__
+# # @formatter:off
 def patch_init(self, *args, **kwargs):
     """
     This routine patches the default mu.PolicyLambda.__init__()
@@ -29,5 +27,4 @@ def patch_init(self, *args, **kwargs):
     self.archive.add_modules(None, ('c7x', 'arnparse', 'argcomplete'))
     self.archive.add_contents('c7x_policy.py', PolicyHandlerEntrypoint)
 
-mu.PolicyLambda.__init__ = patch_init
 # @formatter:on
