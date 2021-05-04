@@ -302,7 +302,7 @@ class PullMode(PolicyExecutionMode):
             self.policy.ctx.metrics.put_metric(
                 "ResourceTime", rt, "Seconds", Scope="Policy")
             self.policy._write_file(
-                'resources.json', utils.dumps(resources, indent=2))
+                'resources', utils.dumps(resources, indent=2))
 
             if not resources:
                 return []
@@ -473,7 +473,7 @@ class LambdaMode(ServerlessExecutionMode):
                     "Invoking actions %s", self.policy.resource_manager.actions)
 
             self.policy._write_file(
-                'resources.json', utils.dumps(resources, indent=2))
+                'resources', utils.dumps(resources, indent=2))
 
             for action in self.policy.resource_manager.actions:
                 self.policy.log.info(

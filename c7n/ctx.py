@@ -92,9 +92,9 @@ class ExecutionContext:
         if exc_type is not None and self.metrics:
             self.metrics.put_metric('PolicyException', 1, "Count")
         self.policy._write_file(
-            'metadata.json', dumps(self.get_metadata(), indent=2))
+            'metadata', dumps(self.get_metadata(), indent=2))
         self.api_stats.__exit__(exc_type, exc_value, exc_traceback)
-
+    
         with self.tracer.subsegment('output'):
             self.metrics.flush()
             self.logs.__exit__(exc_type, exc_value, exc_traceback)
