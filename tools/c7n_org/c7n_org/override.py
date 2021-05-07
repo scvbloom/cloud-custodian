@@ -12,6 +12,7 @@ class CloudProvider():
     fetch_query = '''
     FOR policy IN policies
         FILTER policy.resource == @resource
+        FILTER @event_name IN policy.mode.events
             RETURN policy
     '''
 
@@ -66,10 +67,13 @@ class CloudProvider():
             self.fetch_periodic,
             bindVars={"resource": resource}, rawResults=True)
 
-    def _filter_policies(self, resource):
+    def _filter_policies(self, resource, event_name):
         return self.db.AQLQuery(
             self.fetch_query,
-            bindVars={"resource": resource}, rawResults=True)
+            bindVars={
+                "resource": resource,
+                "event_name": event_name,
+            }, rawResults=True)
 
     def _parse_config(self, config):
         raise NotImplementedError
@@ -93,6 +97,9 @@ class AWS(CloudProvider):
             "name": "aws_" + account_config["account"],
             "role": role,
         }
+        periodic = c["source"] != "periodic"
+        if periodic:
+            c["event_name"] = account_config["detail"]["eventName"]
         aws_config = {
             "accounts": [c]
         }
@@ -107,8 +114,11 @@ class AWS(CloudProvider):
             return {
                 "policies": source_policies,
             }
-
-        source_policies = self._filter_policies(self.config["accounts"][0]["source"])
+        else:
+            source_policies = self._filter_policies(
+                self.config["accounts"][0]["source"],
+                self.config["accounts"][0]["event_name"],
+                )
 
         print(source_policies)
         return {

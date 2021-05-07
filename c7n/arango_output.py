@@ -21,6 +21,7 @@ from pyArango.connection import Connection
 from c7n.exceptions import InvalidOutputConfig
 from c7n.registry import PluginRegistry
 from c7n.utils import parse_url_config
+from c7n.c7x_mapping import resource_mapping
 
 try:
     import psutil
@@ -318,6 +319,12 @@ class Metrics:
         raise NotImplementedError("subclass responsiblity")
 
     def write_to_db(self, ns, metrics):
+        if ns == "resources":
+            resource_map = resource_mapping.get(self.ctx.policy.resource_type, {})
+            for i in range(len(metrics)):
+                metrics[i]["c7x_details"] = {}
+                for field, mapped_key in resource_map.items():
+                    metrics[i]["c7x_details"][field] = metrics[i][mapped_key]
         self.db.AQLQuery(
             self.metrics_query,
             bindVars={
