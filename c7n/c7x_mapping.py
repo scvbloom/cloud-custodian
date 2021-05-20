@@ -49,5 +49,29 @@ resource_mapping = {
     "aws.rds-snapshot": {
         "name": "DBSnapshotIdentifier",
         "arn": "DBSnapshotArn"
+    },
+    "aws.sns": {
+        "name": "TopicArn"
+    },
+    "aws.efs": {
+        "name": "Name",
+        "arn": "FileSystemArn"
     }
 }
+
+a = [
+    "aws.account",
+    "aws.rds-snapshot",
+    "aws.s3",
+    "aws.kms-key",
+    "aws.sns",
+    "aws.efs",
+    "aws.iam-user",
+    "aws.key-pair",
+    "aws.eni",
+    "aws.route-table",
+    "aws.rds",
+    "aws.security-group",
+    "aws.vpc-endpoint",
+    "aws.vpc"
+]
