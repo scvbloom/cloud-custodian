@@ -32,6 +32,8 @@ def aws_callback(ch, method, properties, body):
     connection = pika.BlockingConnection(creds)
     channel = connection.channel()
     for p in counts:
+        if counts[p] == 0:
+            continue
         msg = {
             "violationCount": counts[p],
             "cloudProvider": "aws",
