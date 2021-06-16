@@ -5,6 +5,7 @@ from .cli import run
 import json
 import os
 from pyArango.connection import Connection
+from pyArango import theExceptions
 
 assumeRole = os.getenv("AWS_ASSUME_ROLE")
 
@@ -25,12 +26,19 @@ class CloudProvider():
     '''
     event_id = ""
 
+    def _bootstrap(self):
+        try:
+            self.db.createCollection(name="policies")
+        except theExceptions.CreationError:
+            pass
+
     def _connect(self):
         self.conn = Connection(
             arangoURL=os.getenv("CUSTODIAN_ARANGO_URL"),
             username=os.getenv("CUSTODIAN_ARANGO_USERNAME"),
             password=os.getenv("CUSTODIAN_ARANGO_PASSWORD"))
         self.db = self.conn[os.getenv("CUSTODIAN_ARANGO_DBNAME")]
+        self._bootstrap()
 
     def __init__(
             self, config, output_dir, accounts=None,

@@ -17,6 +17,7 @@ import tempfile
 import time
 import uuid
 from pyArango.connection import Connection
+from pyArango import theExceptions
 
 from c7n.exceptions import InvalidOutputConfig
 from c7n.registry import PluginRegistry
@@ -40,6 +41,12 @@ class OutputRegistry(PluginRegistry):
 
     default_protocol = None
 
+    def _bootstrap(self):
+        try:
+            self.db.createCollection(name="c7x_scans")
+        except theExceptions.CreationError:
+            pass
+
     def _connect(self):
         global conn
         if conn:
@@ -53,6 +60,7 @@ class OutputRegistry(PluginRegistry):
             max_retries=2)
         conn = self.conn
         self.db = self.conn[os.getenv("CUSTODIAN_ARANGO_DBNAME")]
+        self._bootstrap()
 
     def select(self, selector, ctx):
         try:
@@ -281,6 +289,11 @@ class Metrics:
     LET doc = DOCUMENT("c7x_scans", @id)
     UPDATE doc WITH {@field: @entry} IN c7x_scans
     '''
+    def _bootstrap(self):
+        try:
+            self.db.createCollection(name="c7x_scans")
+        except theExceptions.CreationError:
+            pass
 
     def _connect(self):
         global conn
@@ -295,6 +308,7 @@ class Metrics:
             password=os.getenv("CUSTODIAN_ARANGO_PASSWORD"))
         conn = self.conn
         self.db = self.conn[os.getenv("CUSTODIAN_ARANGO_DBNAME")]
+        self._bootstrap()
 
     def __init__(self, ctx, config=None):
         self.ctx = ctx
@@ -396,6 +410,11 @@ class LogMetrics(Metrics):
 class LogOutput:
 
     log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    def _bootstrap(self):
+        try:
+            self.db.createCollection(name="c7x_scans")
+        except theExceptions.CreationError:
+            pass
 
     def _connect(self):
         global conn
@@ -410,6 +429,7 @@ class LogOutput:
             password=os.getenv("CUSTODIAN_ARANGO_PASSWORD"))
         conn = self.conn
         self.db = self.conn[os.getenv("CUSTODIAN_ARANGO_DBNAME")]
+        self._bootstrap()
 
     def __init__(self, ctx, config=None):
         self.ctx = ctx
